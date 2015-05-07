@@ -7,7 +7,15 @@ class Validator
 	 */
 	public function phone($attribute, $value, $parameters, $validator)
 	{
+
 		$data = $validator->getData();
+		
+		$type = $parameters[count($parameters)-1];
+		if($type == 'mobile' || $type == 'landline'){
+			$type = array_pop($parameters);
+		}else{
+			$type = '';
+		}
 		// Check if we should validate using a default country or a *_country field.
 		if (!empty($parameters)) {
 			$countries = $parameters;
@@ -32,6 +40,17 @@ class Validator
 			try {
 				$phoneProto = $phoneUtil->parse($value, $country);
 				if ($phoneUtil->isValidNumberForRegion($phoneProto, $country)) {
+					
+					// if type is specified, then check for numberType >>> 1 = mobile, 0 = landline
+					if($type == 'mobile'){
+						if ($phoneUtil->getNumberType($phoneProto) != 1){
+							return FALSE;
+						}
+					}if ($type == 'landline'){
+						if ($phoneUtil->getNumberType($phoneProto) != 0){
+							return FALSE;
+						}
+					}
 					return TRUE;
 				}
 			}
